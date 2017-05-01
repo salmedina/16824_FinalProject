@@ -111,13 +111,13 @@ def eval(rnn, test_dataset, rnn_params):
     for images, labels in test_loader:
         images = Variable(images.view(-1, rnn_params.sequence_length, rnn_params.input_size))
         if use_cuda:
-            images.cuda()
+            images = images.cuda()
         outputs = rnn(images)
 
         labels = Variable(labels)
         if use_cuda:
-            labels.cuda()
-            outputs.cuda()
+            labels = labels.cuda()
+            outputs = outputs.cuda()
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum()
