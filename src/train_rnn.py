@@ -30,6 +30,10 @@ class RNN(nn.Module):
         h0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
         c0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
 
+        if use_cuda:
+            h0.cuda()
+            c0.cuda()
+
         out, _ = self.lstm(x, (h0, c0))
         out = self.fc(out[:, -1, :])
         return out
@@ -70,6 +74,9 @@ def train(train_dataset, rnn_params, save_path=''):
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(rnn.parameters(), lr=rnn_params.learning_rate)
 
+    if use_cuda:
+        rnn.cuda()
+        criterion.cuda()
 
     for epoch in range(rnn_params.num_epochs):
         for i, (images, labels) in enumerate(train_loader):
@@ -97,7 +104,14 @@ def eval(rnn, test_dataset, rnn_params):
     total = 0
     for images, labels in test_loader:
         images = Variable(images.view(-1, rnn_params.sequence_length, rnn_params.input_size))
+        if use_cuda:
+            images.cuda()
         outputs = rnn(images)
+
+        labels = Variable(labels)
+        if use_cuda:
+            labels.cuda()
+            outputs.cuda()
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum()
