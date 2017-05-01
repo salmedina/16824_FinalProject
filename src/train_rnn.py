@@ -98,7 +98,8 @@ def train(train_dataset, rnn_params, save_path=''):
             if (i + 1) % 100 == 0:
                 print 'Epoch [%d/%d], Step [%d/%d], Loss: %.4f' % (
                 epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size, loss.data[0])
-        if save_path:
+
+        if epoch % 100 == 0 and save_path:
             model_name = 'rnn_%04d.pkl'%(epoch)
             torch.save(rnn.state_dict(), join(save_path, model_name))
 
