@@ -139,9 +139,6 @@ def load_classes(classes_path):
     return [l.strip() for l in open(classes_path).readlines()]
 
 def main(data_path, data_save_path, sel_classes_path):
-    data_path = '../Data/mockup/'
-    data_save_path = '../Data/mockup.npz'
-    sel_classes_path = './body_motion_labels.txt'
     sel_classes = load_classes(sel_classes_path)
     req_frames = 180
 
