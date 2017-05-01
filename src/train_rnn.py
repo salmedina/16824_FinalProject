@@ -8,6 +8,7 @@ import torchvision.datasets as dsets
 import torchvision.transforms as transforms
 from torch.autograd import Variable
 from collections import namedtuple
+from os.path import join
 import numpy as np
 
 RNNParams = namedtuple('RNNParams', 'sequence_length, input_size, hidden_size, num_layers, num_classes, batch_size, num_epochs, learning_rate')
@@ -98,7 +99,8 @@ def train(train_dataset, rnn_params, save_path=''):
                 print 'Epoch [%d/%d], Step [%d/%d], Loss: %.4f' % (
                 epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size, loss.data[0])
                 if save_path:
-                    torch.save(rnn.state_dict(), save_path)
+                    model_name = 'rnn_%04d.pkl'
+                    torch.save(rnn.state_dict(), join(save_path, model_name))
 
     return rnn
 
@@ -114,18 +116,12 @@ def eval(rnn, test_dataset, rnn_params):
             images = images.cuda()
         outputs = rnn(images)
 
-        #labels = Variable(labels)
         if use_cuda:
             labels = labels.cuda()
             outputs = outputs.cuda()
         _, predicted = torch.max(outputs.data, 1)
 
-        #predicted = Variable(predicted)
-        #print predicted.view(-1)
-        #print labels.view(-1)
         total += labels.size(0)
-        #print (predicted.view(-1) == labels.view(-1)).sum()
-        #print correct
         correct += (predicted.view(-1) == labels.view(-1)).sum()
     print 'Test Accuracy of the model on the %d test images: %d%%' % (len(test_dataset),100 * correct / total)
 
@@ -146,7 +142,7 @@ if __name__ == '__main__':
                         learning_rate = config['rnn']['lr'])
 
     print '>>> Loading datasets <<<'
-    train_dataset = load_ucf_dataset(config['train_path'])
+    train_dataset = load_ucf_dataset(config['train_path'], config['models_dir'])
     test_dataset = load_ucf_dataset(config['test_path'])
 
     print '>>> Training the model <<<'
