@@ -30,16 +30,9 @@ class RNN(nn.Module):
         h0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
         c0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
 
-        if use_cuda:
-            h0.cuda()
-            c0.cuda()
-
         out, _ = self.lstm(x, (h0, c0))
-        if use_cuda:
-            out.cuda()
         out = self.fc(out[:, -1, :])
-        if use_cuda:
-            out.cuda()
+
         return out
 
 def build_mnist_dataset():
@@ -79,20 +72,20 @@ def train(train_dataset, rnn_params, save_path=''):
     optimizer = torch.optim.Adam(rnn.parameters(), lr=rnn_params.learning_rate)
 
     if use_cuda:
-        rnn.cuda()
-        criterion.cuda()
+        rnn = rnn.cuda()
+        criterion = criterion.cuda()
 
     for epoch in range(rnn_params.num_epochs):
         for i, (images, labels) in enumerate(train_loader):
             images = Variable(images.view(-1, rnn_params.sequence_length, rnn_params.input_size))
             if use_cuda:
-                images.cuda()
+                images = images.cuda()
             optimizer.zero_grad()
             outputs = rnn(images)
             labels = Variable(labels)
             if use_cuda:
-                outputs.cuda()
-                labels.cuda()
+                outputs = outputs.cuda()
+                labels = labels.cuda()
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
