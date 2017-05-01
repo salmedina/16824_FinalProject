@@ -129,16 +129,18 @@ def test(state_dict_path, test_dataset, rnn_params):
     rnn.load_state_dict(torch.load(state_dict_path))
     eval(rnn, test_dataset, rnn_params)
 
-if __name__ == '__main__':
+def set_gpu_id(id):
     global gpu_id
+    gpu_id = id
 
+if __name__ == '__main__':
     if len(sys.argv) < 2:
         print 'Usage: train_rnn.py <config_path>'
         sys.exit(-1)
     config = json.load(open(sys.argv[1]))
 
     if use_cuda and 'gpu' in config:
-        gpu_id = config['gpu']
+        set_gpu_id(config[['gpu']])
 
     params = RNNParams(sequence_length = config['rnn']['seq_len'],
                         input_size = config['rnn']['input'],
