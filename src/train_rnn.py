@@ -142,11 +142,11 @@ if __name__ == '__main__':
                         learning_rate = config['rnn']['lr'])
 
     print '>>> Loading datasets <<<'
-    train_dataset = load_ucf_dataset(config['train_path'], config['models_dir'])
+    train_dataset = load_ucf_dataset(config['train_path'])
     test_dataset = load_ucf_dataset(config['test_path'])
 
     print '>>> Training the model <<<'
-    rnn_model = train(train_dataset,  params)
+    rnn_model = train(train_dataset,  params, config['models_dir'])
 
     print '>>> Evaluating the model <<<'
     eval(rnn_model, test_dataset, params)
