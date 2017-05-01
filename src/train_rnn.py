@@ -29,11 +29,15 @@ class RNN(nn.Module):
     def forward(self, x):
         h0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
         c0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
-
+        if use_cuda:
+            h0 = h0.cuda()
+            c0 = c0.cuda()
         out, _ = self.lstm(x, (h0, c0))
+        if use_cuda:
+            out = out.cuda()
         out = self.fc(out[:, -1, :])
 
-        return out
+        return out.cuda()
 
 def build_mnist_dataset():
     train_dataset = dsets.MNIST(root='../data/',
