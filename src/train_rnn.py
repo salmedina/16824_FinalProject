@@ -130,13 +130,15 @@ def test(state_dict_path, test_dataset, rnn_params):
     eval(rnn, test_dataset, rnn_params)
 
 if __name__ == '__main__':
+    global gpu_id
+
     if len(sys.argv) < 2:
         print 'Usage: train_rnn.py <config_path>'
         sys.exit(-1)
     config = json.load(open(sys.argv[1]))
 
     if use_cuda and 'gpu' in config:
-        global gpu_id = config['gpu']
+        gpu_id = config['gpu']
 
     params = RNNParams(sequence_length = config['rnn']['seq_len'],
                         input_size = config['rnn']['input'],
