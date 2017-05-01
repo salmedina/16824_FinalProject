@@ -119,9 +119,9 @@ def eval(rnn, test_dataset, rnn_params):
             labels = labels.cuda()
             outputs = outputs.cuda()
         _, predicted = torch.max(outputs.data, 1)
-        print outputs.data
+        
         print predicted
-        print len(labels)
+        print labels
         total += labels.size(0)
         correct += (predicted == labels).sum()
     print 'Test Accuracy of the model on the %d test images: %d%%' % (len(test_dataset),100 * correct / total)
