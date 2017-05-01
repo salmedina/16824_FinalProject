@@ -1,0 +1,12 @@
+BabyCrawling
+BlowingCandles
+BodyWeightSquats
+HandstandPushups
+HandstandWalking
+PullUps
+PushUps
+RockClimbingIndoor
+RopeClimbing
+Swing
+TaiChi
+TrampolineJumping
