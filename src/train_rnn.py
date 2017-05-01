@@ -95,7 +95,7 @@ def train(train_dataset, rnn_params, save_path=''):
             loss.backward()
             optimizer.step()
 
-            if (i + 1) % 100 == 0:
+            if (i + 1) % 10 == 0:
                 print 'Epoch [%d/%d], Step [%d/%d], Loss: %.4f' % (
                 epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size, loss.data[0])
 
