@@ -11,8 +11,6 @@ from math import ceil
 from random import randint
 from os.path import join
 
-sns.palplot(sns.color_palette("Set2", 10))
-
 #################################
 # AUXILIARY FUNCTIONS
 
