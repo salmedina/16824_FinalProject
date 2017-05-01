@@ -120,6 +120,7 @@ def eval(rnn, test_dataset, rnn_params):
             outputs = outputs.cuda()
         _, predicted = torch.max(outputs.data, 1)
 
+        predicted = Variable(predicted)
         print predicted.view(-1)
         print labels.view(-1)
         total += labels.size(0)
