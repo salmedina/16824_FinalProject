@@ -1,0 +1,7 @@
+{
+  "data_path":"../Data/mockup/",
+  "data_save_path":"../Data/mockup.npz",
+  "sel_classes_path":"./body_motion_labels.txt"
+  "config_mode":"batch",
+  "batch_list_path":""
+}

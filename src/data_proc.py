@@ -9,7 +9,7 @@ import json
 import numpy as np
 from math import ceil
 from random import randint
-from os.path import join
+from os.path import join, basename
 
 #################################
 # AUXILIARY FUNCTIONS
@@ -17,6 +17,80 @@ from os.path import join
 def which_dirs_in_path(path, dirs):
     subdirs = os.listdir(path)
     return [d for d in dirs if d in subdirs and os.path.isdir(join(path, d))]
+
+
+def load_batch_list(data_path, batch_path, actions_dict):
+    video_subpaths = [l.strip() for l in open(batch_path).readlines()]
+    batch_list = []
+    for video_subpath in video_subpaths:
+        batch_list.append((join(data_path, video_subpath), actions_dict[video_subpath.split('/')[0]]))
+
+    return batch_list
+
+
+def extract_batch_data(batch_list, num_frames):
+    '''
+    Reads the data from the folders and loads into numpy
+    @batch_list: list of tuples  (videos subpaths, class)
+    @returns: a tuple with the data samples and datalabels
+    '''
+
+    REQ_FRAMES = num_frames
+    data_samples = []
+    data_labels = []
+
+    # For each element in the batch
+    for video_path, video_label in batch_list:
+        # Each of the json files correspond to each frame
+        vf_jsons = glob.glob(join(video_path, '*.json'))
+        print 'Found {} frames for {}'.format(len(vf_jsons), basename(video_path))
+        if len(vf_jsons) < 1:
+            continue
+
+        # Collect all the frames for  the video
+        last_pose = np.zeros(54)
+        video_poses = np.array([])
+        missing_count = 0
+        for vf_json_path in vf_jsons:
+            vf_json = json.load(open(vf_json_path))
+            if 'people' in vf_json and len(vf_json['people']) > 0 and 'body_parts' in vf_json['people'][0]:
+                frame_pose = vf_json['people'][0]['body_parts']
+                if len(video_poses) < 1:
+                    video_poses = np.array([frame_pose], dtype=np.float32)
+                else:
+                    video_poses = np.concatenate((video_poses, [frame_pose]))
+                last_pose = frame_pose
+            else:
+                if len(video_poses) < 1:  # When the first frame did not find any pose
+                    video_poses = np.array([last_pose], dtype=np.float32)
+                missing_count += 1
+                video_poses = np.concatenate((video_poses, [last_pose]))
+        if missing_count > 0:
+            print 'Missing frames: {}/{}'.format(missing_count, len(video_poses))
+
+        if len(video_poses) < REQ_FRAMES:
+            # Loop through the video until we get the required length
+            loops = int(ceil(REQ_FRAMES / len(video_poses)))
+            video_poses = np.tile(video_poses, (loops, 1))[:REQ_FRAMES]
+        elif len(video_poses) > REQ_FRAMES:
+            # Select a segment at random from the video
+            start_idx = randint(0, len(video_poses) - REQ_FRAMES)  # randint is inclusive
+            video_poses = video_poses[start_idx:start_idx + REQ_FRAMES]
+
+        # Append pose matrix to data tensor
+        if len(data_samples) < 1:
+            data_samples = np.array([video_poses], dtype=np.float32)
+        else:
+            data_samples = np.concatenate((data_samples, [video_poses]))
+
+        # Append label to label tensor
+        data_labels.append(video_label)
+
+    assert len(data_samples) == len(data_labels)
+
+    data_labels = np.array(data_labels)
+
+    return data_samples, data_labels
 
 
 def extract_data(data_path, sel_classes, num_frames, actions_dict):
@@ -149,6 +223,16 @@ def main(data_path, data_save_path, sel_classes_path):
     data, labels = extract_data(data_path, sel_classes, req_frames, actions_dict)
     store_npdata(data_save_path, data, labels)
 
+def main_batch(data_path, data_save_path, sel_classes_path, batch_list_path):
+    sel_classes = load_classes(sel_classes_path)
+    print len(sel_classes), 'human motion classes'
+    hm_motion_dict = get_list_inv_dict(sel_classes)
+
+    req_frames = 180
+
+    train_batch_list = load_batch_list(data_path, batch_list_path, hm_motion_dict)
+    extract_batch_data(train_batch_list, req_frames)
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print 'Usage: python data_proc.py <config_json>'
@@ -157,5 +241,9 @@ if __name__ == '__main__':
     data_path = config['data_path']
     data_save_path = config['data_save_path']
     sel_classes_path = config['sel_classes_path']
-    main(data_path, data_save_path, sel_classes_path)
+    batch_list_path = config['batch_list_path']
 
+    if config['mode'] == 'selected':
+        main(data_path, data_save_path, sel_classes_path)
+    elif config['mode'] == 'batch':
+        main_batch(data_path, data_save_path, sel_classes_path, batch_list_path)
