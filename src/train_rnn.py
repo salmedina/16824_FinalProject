@@ -85,9 +85,14 @@ def train(train_dataset, rnn_params, save_path=''):
     for epoch in range(rnn_params.num_epochs):
         for i, (images, labels) in enumerate(train_loader):
             images = Variable(images.view(-1, rnn_params.sequence_length, rnn_params.input_size))
+            if use_cuda:
+                images.cuda()
             optimizer.zero_grad()
             outputs = rnn(images)
             labels = Variable(labels)
+            if use_cuda:
+                outputs.cuda()
+                labels.cuda()
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
