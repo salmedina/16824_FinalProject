@@ -10,7 +10,6 @@ import numpy as np
 from math import ceil
 from random import randint
 from os.path import join
-import seaborn as sns
 
 sns.palplot(sns.color_palette("Set2", 10))
 
