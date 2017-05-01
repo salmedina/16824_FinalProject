@@ -1,0 +1,14 @@
+{
+  "train_path":"/Users/zal/CMU/Spring2017/16824/FinalProject/Data/human_motion.npz",
+  "test_path":"/Users/zal/CMU/Spring2017/16824/FinalProject/Data/human_motion.npz",
+  "rnn":{
+    "seq_len":180,
+    "input":54,
+    "hidden":1024,
+    "layers":3,
+    "num_class":12,
+    "batch_sz":200,
+    "epochs":1000,
+    "lr":0.001
+  }
+}

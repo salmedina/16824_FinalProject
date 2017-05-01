@@ -1,4 +1,6 @@
 from __future__ import division
+import sys
+import json
 import torch
 import torch.nn as nn
 import torch.utils.data as data
@@ -86,7 +88,7 @@ def train(train_dataset, rnn_params, save_path=''):
             loss.backward()
             optimizer.step()
 
-            if (i + 1) % 100 == 0:
+            if (i + 1) % 10 == 0:
                 print 'Epoch [%d/%d], Step [%d/%d], Loss: %.4f' % (
                 epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size, loss.data[0])
                 if save_path:
@@ -110,20 +112,26 @@ def eval(rnn, test_dataset, rnn_params):
 
 
 if __name__ == '__main__':
-    params = RNNParams(sequence_length = 180,
-                        input_size = 54,
-                        hidden_size = 1024,
-                        num_layers = 3,
-                        num_classes = 12,
-                        batch_size = 200,
-                        num_epochs = 1000,
-                        learning_rate = 0.01)
+    if len(sys.argv) < 2:
+        print 'Usage: train_rnn.py <config_path>'
+        sys.exit(-1)
+    config = json.load(open(sys.argv[1]))
+
+    params = RNNParams(sequence_length = config['rnn']['seq_len'],
+                        input_size = config['rnn']['input'],
+                        hidden_size = config['rnn']['hidden'],
+                        num_layers = config['rnn']['layers'],
+                        num_classes = config['rnn']['num_class'],
+                        batch_size = config['rnn']['batch_sz'],
+                        num_epochs = config['rnn']['epochs'],
+                        learning_rate = config['rnn']['lr'])
 
     print '>>> Loading datasets <<<'
-    train_dataset = load_ucf_dataset('/Users/zal/CMU/Spring2017/16824/FinalProject/Data/human_motion.npz')
+    train_dataset = load_ucf_dataset(config['train_path'])
+    test_dataset = load_ucf_dataset(config['test_path'])
 
     print '>>> Training the model <<<'
     rnn_model = train(train_dataset,  params)
 
     print '>>> Evaluating the model <<<'
-    eval(rnn_model, train_dataset, params)
+    eval(rnn_model, test_dataset, params)
