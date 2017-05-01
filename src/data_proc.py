@@ -65,9 +65,10 @@ def extract_data(data_path, sel_classes, num_frames, actions_dict):
                     last_pose = frame_pose
                 else:
                     if len(video_poses) < 1:  # When the first frame did not find any pose
-                        continue
+                        video_poses = np.array([last_pose], dtype=np.float32)
                     missing_count += 1
                     video_poses = np.concatenate((video_poses, [last_pose]))
+
             if missing_count > 0:
                 print 'Missing frames: {}/{}'.format(missing_count, len(video_poses))
 
