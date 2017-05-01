@@ -35,7 +35,11 @@ class RNN(nn.Module):
             c0.cuda()
 
         out, _ = self.lstm(x, (h0, c0))
+        if use_cuda:
+            out.cuda()
         out = self.fc(out[:, -1, :])
+        if use_cuda:
+            out.cuda()
         return out
 
 def build_mnist_dataset():
