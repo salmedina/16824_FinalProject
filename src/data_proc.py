@@ -1,4 +1,4 @@
-#!/user/bin/env python
+#!/usr/bin/python
 
 from __future__ import division
 import os
