@@ -2,8 +2,10 @@ import os
 import sys
 import glob
 import re
-from os.path import join, basename
+from os.path import join
 
+if len(sys.argv) < 2:
+	print '''Usage: getVideoLength.py <dataset_path>'''
 
 dataset_path = sys.argv[1]
 
