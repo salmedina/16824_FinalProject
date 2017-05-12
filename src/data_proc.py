@@ -199,6 +199,8 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
         start_frame = int(start_frame)
         end_frame = int(end_frame)
         clip_len = int(clip_len)
+        if clip_len < 1:
+            print 'ERROR: [{}] {} clip length is 0'.format(processing_pos, video_id)
 
         # Get the clip frames from the total list of frames json
         vf_jsons = sorted(glob.glob(join(data_path, video_id, '*.json')))
