@@ -195,7 +195,7 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
             print '>>> Processing {}/{} clips<<<'.format(processed_count, total_clips)
 
         # Get the clip frames from the total list of frames json
-        vf_jsons = glob.glob(join(data_path, video_id, '*.json'))
+        vf_jsons = sorted(glob.glob(join(data_path, video_id, '*.json')))
         clip_jsons = []
         print 'Video {} has {} frame jsons'.format(video_id, len(vf_jsons))
         for vf_json in vf_jsons:
