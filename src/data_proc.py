@@ -194,11 +194,16 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
         if processed_count % 100 == 0:
             print '>>> Processing {}/{} clips<<<'.format(processed_count, total_clips)
 
+        # Set correct type
+        start_frame = int(start_frame)
+        end_frame = int(end_frame)
+        clip_len = int(clip_len)
+        
         # Get the clip frames from the total list of frames json
         vf_jsons = sorted(glob.glob(join(data_path, video_id, '*.json')))
         clip_jsons = []
         print 'Video {} has {} frame jsons'.format(video_id, len(vf_jsons))
-        for vf_json in vf_jsons:    
+        for vf_json in vf_jsons:
             frame_num = int(re.findall(r'-(\d{6})_pose.json', vf_json)[0])
             print frame_num, vf_json
             if frame_num >= start_frame and frame_num <= end_frame:
