@@ -189,10 +189,10 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
     data_labels = []
 
     # For each annotation
-    processed_count = 0
+    processing_pos = 0
     for video_id, start_frame, end_frame, clip_len, clip_label in annotation_list:
-        processed_count += 1
-        if processed_count % 100 == 0:
+        processing_pos += 1
+        if processing_pos % 100 == 0:
             print '>>> Processing {}/{} clips<<<'.format(processed_count, total_clips)
 
         # Set correct type
@@ -235,7 +235,7 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
                 video_poses = np.concatenate((video_poses, [last_pose]))
 
         if missing_pose_count > 0:
-            print 'Missing pose frames: {}/{}'.format(missing_pose_count, len(video_poses))
+            print '[{}] {} Missing pose frames: {}/{}'.format(processing_pos, video_id, missing_pose_count, len(video_poses))
 
         if len(video_poses) < REQ_FRAMES:
             # Loop through the video until we get the required length
