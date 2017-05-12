@@ -203,18 +203,17 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
         # Get the clip frames from the total list of frames json
         vf_jsons = sorted(glob.glob(join(data_path, video_id, '*.json')))
         clip_jsons = []
-        print 'Video {} has {} frame jsons'.format(video_id, len(vf_jsons))
         for vf_json in vf_jsons:
             frame_num = int(re.findall(r'-(\d{6})_pose.json', vf_json)[0])
             if frame_num >= start_frame and frame_num <= end_frame:
                 clip_jsons.append(vf_json)
 
-        print 'Found {} / {} frames'.format(len(clip_jsons), clip_len)
+
         # Collect all the frames for  the video
         #TODO: change to two persons if method doesn't work
         last_pose = np.zeros(num_feats) #TODO: verify if default value at 0's work
         video_poses = np.array([])
-        missing_count = 0
+        missing_pose_count = 0
         # For each frame pose annotation
         for clip_json_path in clip_jsons:
             clip_json = json.load(open(clip_json_path))
@@ -232,11 +231,11 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
                 # in case it didn't find a pose estimation, fill with last known pose
                 if len(video_poses) < 1:  # When the first frame did not find any pose
                     video_poses = np.array([last_pose], dtype=np.float32)
-                missing_count += 1
+                missing_pose_count += 1
                 video_poses = np.concatenate((video_poses, [last_pose]))
 
-        if missing_count > 0:
-            print 'Missing frames: {}/{}'.format(missing_count, len(video_poses))
+        if missing_pose_count > 0:
+            print 'Missing pose frames: {}/{}'.format(missing_pose_count, len(video_poses))
 
         if len(video_poses) < REQ_FRAMES:
             # Loop through the video until we get the required length
