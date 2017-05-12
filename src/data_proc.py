@@ -330,6 +330,6 @@ if __name__ == '__main__':
     tensor_size = config['tensor_size']
 
     if config['mode'] == 'selected':
-        main(data_path, data_save_path, sel_classes_path, tensor_size)
+        main(data_path, data_save_path, sel_classes_path, batch_list_path, tensor_size)
     elif config['mode'] == 'batch':
         main_batch(data_path, data_save_path, sel_classes_path, batch_list_path)
