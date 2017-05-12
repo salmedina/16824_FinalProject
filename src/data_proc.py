@@ -2,7 +2,9 @@
 
 from __future__ import division
 import os
+import re
 import sys
+import csv
 import json
 import glob
 import json
@@ -93,7 +95,7 @@ def extract_batch_data(batch_list, num_frames):
     return data_samples, data_labels
 
 
-def extract_data(data_path, sel_classes, num_frames, actions_dict):
+def extract_data_ucf(data_path, sel_classes, num_frames, actions_dict):
     '''
     Reads the data from the folders and loads into numpy
     @returns: a tuple with the data samples and datalabels
@@ -124,7 +126,6 @@ def extract_data(data_path, sel_classes, num_frames, actions_dict):
             print 'Found {} frames for {}'.format(len(vf_jsons), video_name)
 
             # Collect all the frames for  the video
-
             last_pose = np.zeros(54)
             video_poses = np.array([])
             missing_count = 0
@@ -163,6 +164,91 @@ def extract_data(data_path, sel_classes, num_frames, actions_dict):
 
             # Append label to label tensor
             data_labels.append(actions_dict[sel_class])
+
+        assert len(data_samples) == len(data_labels)
+
+    data_labels = np.array(data_labels)
+
+    return data_samples, data_labels
+
+def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
+    '''
+    Reads the data from the folders and loads into numpy
+    @returns: a tuple with the data samples and datalabels
+    '''
+
+    # TODO: Verify that all video folders are in the dataset path
+    # CONSTS
+    REQ_FRAMES = num_frames
+    feats_per_person = 54
+    num_persons = 1
+    num_feats = feats_per_person * num_persons
+    total_clips = len(annotation_list)
+
+    # Gather vars
+    data_samples = []
+    data_labels = []
+
+    # For each annotation
+    processed_count = 0
+    for video_id, start_frame, end_frame, clip_len, clip_label in annotation_list:
+        if processed_count % 100 == 0:
+            print '>>> Processing {}/{} clips<<<'.format(processed_count, total_clips)
+
+        # Get the clip frames from the total list of frames json
+        vf_jsons = glob.glob(join(data_path, video_id, '*.json'))
+        clip_jsons = []
+        for vf_json in vf_jsons:
+            frame_num = int(re.findall(r'-(\d+)_pose.json', vf_json)[0])
+            if frame_num >= start_frame and frame_num <= end_frame:
+                clip_jsons.append(vf_json)
+
+        print 'Found {} / {} frames'.format(len(clip_jsons), clip_len)
+        # Collect all the frames for  the video
+        #TODO: change to two persons if method doesn't work
+        last_pose = np.zeros(num_feats) #TODO: verify if default value at 0's work
+        video_poses = np.array([])
+        missing_count = 0
+        # For each frame pose annotation
+        for clip_json_path in clip_jsons:
+            clip_json = json.load(open(clip_json_path))
+            # if there is at least one person in the pose estimation
+            if 'people' in clip_json and len(clip_json['people']) > 0 and 'body_parts' in clip_json['people'][0]:
+                # extract the pose and add to the final tensor
+                frame_pose = clip_json['people'][0]['body_parts']
+                if len(video_poses) < 1:
+                    video_poses = np.array([frame_pose], dtype=np.float32)
+                else:
+                    video_poses = np.concatenate((video_poses, [frame_pose]))
+                # update last pose
+                last_pose = frame_pose
+            else:
+                # in case it didn't find a pose estimation, fill with last known pose
+                if len(video_poses) < 1:  # When the first frame did not find any pose
+                    video_poses = np.array([last_pose], dtype=np.float32)
+                missing_count += 1
+                video_poses = np.concatenate((video_poses, [last_pose]))
+
+        if missing_count > 0:
+            print 'Missing frames: {}/{}'.format(missing_count, len(video_poses))
+
+        if len(video_poses) < REQ_FRAMES:
+            # Loop through the video until we get the required length
+            loops = int(ceil(REQ_FRAMES / len(video_poses)))
+            video_poses = np.tile(video_poses, (loops, 1))[:REQ_FRAMES]
+        elif len(video_poses) > REQ_FRAMES:
+            # Select a segment at random from the video
+            start_idx = randint(0, len(video_poses) - REQ_FRAMES)  # randint is inclusive
+            video_poses = video_poses[start_idx:start_idx + REQ_FRAMES]
+
+        # Append pose matrix to data tensor
+        if len(data_samples) < 1:
+            data_samples = np.array([video_poses], dtype=np.float32)
+        else:
+            data_samples = np.concatenate((data_samples, [video_poses]))
+
+        # Append label to label tensor
+        data_labels.append(actions_dict[clip_label])
 
         assert len(data_samples) == len(data_labels)
 
@@ -213,13 +299,15 @@ def load_classes(classes_path):
         return []
     return [l.strip() for l in open(classes_path).readlines()]
 
-def main(data_path, data_save_path, sel_classes_path, tensor_size):
+def main(data_path, data_save_path, sel_classes_path, annotations_path, tensor_size):
     sel_classes = load_classes(sel_classes_path)
 
     print len(sel_classes), 'selected classes'
     actions_dict = get_list_inv_dict(sel_classes)
 
-    data, labels = extract_data(data_path, sel_classes, tensor_size, actions_dict)
+    annotation_list = list(csv.reader(open(annotations_path)))
+
+    data, labels = extract_data_charades(data_path, annotation_list, tensor_size, actions_dict)
     store_npdata(data_save_path, data, labels)
 
 def main_batch(data_path, data_save_path, sel_classes_path, batch_list_path, tensor_size):
