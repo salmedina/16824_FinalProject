@@ -213,25 +213,22 @@ def load_classes(classes_path):
         return []
     return [l.strip() for l in open(classes_path).readlines()]
 
-def main(data_path, data_save_path, sel_classes_path):
+def main(data_path, data_save_path, sel_classes_path, tensor_size):
     sel_classes = load_classes(sel_classes_path)
-    req_frames = 180
 
-    print len(sel_classes), 'human motion classes'
+    print len(sel_classes), 'selected classes'
     actions_dict = get_list_inv_dict(sel_classes)
 
-    data, labels = extract_data(data_path, sel_classes, req_frames, actions_dict)
+    data, labels = extract_data(data_path, sel_classes, tensor_size, actions_dict)
     store_npdata(data_save_path, data, labels)
 
-def main_batch(data_path, data_save_path, sel_classes_path, batch_list_path):
+def main_batch(data_path, data_save_path, sel_classes_path, batch_list_path, tensor_size):
     sel_classes = load_classes(sel_classes_path)
     print len(sel_classes), 'human motion classes'
     hm_motion_dict = get_list_inv_dict(sel_classes)
 
-    req_frames = 180
-
     train_batch_list = load_batch_list(data_path, batch_list_path, hm_motion_dict)
-    extract_batch_data(train_batch_list, req_frames)
+    extract_batch_data(train_batch_list, tensor_size)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -242,8 +239,9 @@ if __name__ == '__main__':
     data_save_path = config['data_save_path']
     sel_classes_path = config['sel_classes_path']
     batch_list_path = config['batch_list_path']
+    tensor_size = config['tensor_size']
 
     if config['mode'] == 'selected':
-        main(data_path, data_save_path, sel_classes_path)
+        main(data_path, data_save_path, sel_classes_path, tensor_size)
     elif config['mode'] == 'batch':
         main_batch(data_path, data_save_path, sel_classes_path, batch_list_path)

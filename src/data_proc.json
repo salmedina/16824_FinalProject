@@ -1,5 +1,6 @@
 {
   "data_path":"../Data/mockup/",
   "data_save_path":"../Data/mockup.npz",
-  "sel_classes_path":"./body_motion_labels.txt"
+  "sel_classes_path":"./body_motion_labels.txt",
+  "tensor_size":180
 }
