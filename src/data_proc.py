@@ -94,7 +94,6 @@ def extract_batch_data(batch_list, num_frames):
 
     return data_samples, data_labels
 
-
 def extract_data_ucf(data_path, sel_classes, num_frames, actions_dict):
     '''
     Reads the data from the folders and loads into numpy
@@ -198,7 +197,9 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
         # Get the clip frames from the total list of frames json
         vf_jsons = glob.glob(join(data_path, video_id, '*.json'))
         clip_jsons = []
+        print 'Video {} has {} frame jsons'.format(video_id, len(vf_jsons))
         for vf_json in vf_jsons:
+            print vf_json
             frame_num = int(re.findall(r'-(\d+)_pose.json', vf_json)[0])
             if frame_num >= start_frame and frame_num <= end_frame:
                 clip_jsons.append(vf_json)
