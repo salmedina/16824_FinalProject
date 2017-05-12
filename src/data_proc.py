@@ -193,7 +193,7 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
     for video_id, start_frame, end_frame, clip_len, clip_label in annotation_list:
         processing_pos += 1
         if processing_pos % 100 == 0:
-            print '>>> Processing {}/{} clips<<<'.format(processed_count, total_clips)
+            print '>>> Processing {}/{} clips<<<'.format(processing_pos, total_clips)
 
         # Set correct type
         start_frame = int(start_frame)
