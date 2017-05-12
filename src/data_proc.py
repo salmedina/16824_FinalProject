@@ -198,9 +198,9 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
         vf_jsons = sorted(glob.glob(join(data_path, video_id, '*.json')))
         clip_jsons = []
         print 'Video {} has {} frame jsons'.format(video_id, len(vf_jsons))
-        for vf_json in vf_jsons:
-            print vf_json
-            frame_num = int(re.findall(r'-(\d+)_pose.json', vf_json)[0])
+        for vf_json in vf_jsons:    
+            frame_num = int(re.findall(r'-(\d{6})_pose.json', vf_json)[0])
+            print frame_num, vf_json
             if frame_num >= start_frame and frame_num <= end_frame:
                 clip_jsons.append(vf_json)
 
