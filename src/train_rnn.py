@@ -146,6 +146,7 @@ if __name__ == '__main__':
 
     if use_cuda and 'gpu' in config:
         set_gpu_id(config['gpu'])
+        print 'Using GPU: {}'.format(gpu_id)
 
     params = RNNParams(sequence_length = config['rnn']['seq_len'],
                         input_size = config['rnn']['input'],
