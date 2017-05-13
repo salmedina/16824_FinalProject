@@ -99,11 +99,11 @@ def train(train_dataset, rnn_params, save_path=''):
             if (i + 1) % 10 == 0:
                 avg_time = 0 if len(epoch_times) == 0 else np.mean(epoch_times)
                 print 'Epoch [%d/%d], Step [%d/%d], Avg. Time: %.3f [s] , Loss: %.8f' % (
-                epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size,  avg_time,loss.data[0])
+                epoch+1, rnn_params.num_epochs, i+1, len(train_dataset) / rnn_params.batch_size,  avg_time,loss.data[0])
         epoch_times.append(time.time()-start_time)
 
         if epoch % 1 == 0 and save_path:
-            model_name = '%s_%04d.pkl'%(rnn_params.name, epoch)
+            model_name = '%s_%04d.pkl'%(rnn_params.name, epoch+1)
             torch.save(rnn.state_dict(), join(save_path, model_name))
 
     return rnn
