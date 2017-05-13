@@ -17,11 +17,11 @@ use_cuda = torch.cuda.is_available()
 gpu_id = 0
 
 class RNN(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, num_classes):
+    def __init__(self, input_size, hidden_size, num_layers, num_classes, dropout=0):
         super(RNN, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=dropout)
         self.fc = nn.Linear(hidden_size, num_classes)
 
     def load_state_dict(self, state_dict):
@@ -149,16 +149,17 @@ if __name__ == '__main__':
                         num_classes = config['rnn']['num_class'],
                         batch_size = config['rnn']['batch_sz'],
                         num_epochs = config['rnn']['epochs'],
-                        learning_rate = config['rnn']['lr'])
+                        learning_rate = config['rnn']['lr'],
+                        dropout=config['rnn']['dropout'])
 
     if config['mode'] == 'train':
-        print '>>> Loading datasets <<<'
+        print '>>> Loading the training data <<<'
         train_dataset = load_ucf_dataset(config['train_path'])
-        test_dataset = load_ucf_dataset(config['test_path'])
-
         print '>>> Training the model <<<'
         rnn_model = train(train_dataset,  params, config['models_dir'])
 
+        print '>>> Loading the testing data <<<'
+        test_dataset = load_ucf_dataset(config['test_path'])
         print '>>> Evaluating the model <<<'
         eval(rnn_model, test_dataset, params)
 
