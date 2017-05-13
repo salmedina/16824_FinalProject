@@ -114,6 +114,8 @@ def eval(rnn, test_dataset, rnn_params):
                                               shuffle=False)
     correct = 0
     total = 0
+    if use_cuda:
+        rnn = rnn.cuda(gpu_id)
     for images, labels in test_loader:
         images = Variable(images.view(-1, rnn_params.sequence_length, rnn_params.input_size))
         if use_cuda:
@@ -127,7 +129,7 @@ def eval(rnn, test_dataset, rnn_params):
 
         total += labels.size(0)
         correct += (predicted.view(-1) == labels.view(-1)).sum()
-    print 'Test Accuracy of the model on the %d test images: %d%%' % (len(test_dataset),100 * correct / total)
+    print 'Test Accuracy of the model on the %d test clips: %d%%' % (len(test_dataset),100 * correct / total)
 
 def test(state_dict_path, test_dataset, rnn_params):
     rnn = RNN(rnn_params.input_size, rnn_params.hidden_size, rnn_params.num_layers, rnn_params.num_classes)
@@ -144,7 +146,10 @@ if __name__ == '__main__':
         sys.exit(-1)
     config = json.load(open(sys.argv[1]))
 
-    if use_cuda and 'gpu' in config:
+    if 'gpu' not in config:
+        use_cuda = False
+
+    if use_cuda:
         set_gpu_id(config['gpu'])
         print 'Using GPU: {}'.format(gpu_id)
 
@@ -170,7 +175,6 @@ if __name__ == '__main__':
         eval(rnn_model, test_dataset, params)
 
     elif config['mode'] == 'test':
-        use_cuda = False
         test_dataset = load_ucf_dataset(config['test_path'])
 
         print '>>> Testing the model <<<'
