@@ -11,7 +11,7 @@ from collections import namedtuple
 from os.path import join
 import numpy as np
 
-RNNParams = namedtuple('RNNParams', 'sequence_length, input_size, hidden_size, num_layers, num_classes, batch_size, num_epochs, learning_rate')
+RNNParams = namedtuple('RNNParams', 'sequence_length, input_size, hidden_size, num_layers, num_classes, batch_size, num_epochs, learning_rate, dropout')
 
 use_cuda = torch.cuda.is_available()
 gpu_id = 0
@@ -70,7 +70,7 @@ def train(train_dataset, rnn_params, save_path=''):
                                                batch_size=rnn_params.batch_size,
                                                shuffle=True)
 
-    rnn = RNN(rnn_params.input_size, rnn_params.hidden_size, rnn_params.num_layers, rnn_params.num_classes)
+    rnn = RNN(rnn_params.input_size, rnn_params.hidden_size, rnn_params.num_layers, rnn_params.num_classes, rnn_params.dropout)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(rnn.parameters(), lr=rnn_params.learning_rate)
 
