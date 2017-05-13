@@ -97,9 +97,10 @@ def train(train_dataset, rnn_params, save_path=''):
             optimizer.step()
 
             if (i + 1) % 10 == 0:
+                avg_time = 0 if len(epoch_times) == 0 else np.mean(epoch_times)
                 print 'Epoch [%d/%d], Step [%d/%d], Avg. Time: %.3f [s] , Loss: %.8f' % (
-                epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size,  np.mean(epoch_times),loss.data[0])
-        epoch_times.append(time.time-start_time)
+                epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size,  avg_time,loss.data[0])
+        epoch_times.append(time.time()-start_time)
 
         if epoch % 1 == 0 and save_path:
             model_name = 'rnn_%04d.pkl'%(epoch)
