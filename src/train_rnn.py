@@ -1,6 +1,7 @@
 from __future__ import division
 import sys
 import json
+import time
 import torch
 import torch.nn as nn
 import torch.utils.data as data
@@ -78,7 +79,9 @@ def train(train_dataset, rnn_params, save_path=''):
         rnn = rnn.cuda(gpu_id)
         criterion = criterion.cuda(gpu_id)
 
+    epoch_times = []
     for epoch in range(rnn_params.num_epochs):
+        start_time = time.time()
         for i, (images, labels) in enumerate(train_loader):
             images = Variable(images.view(-1, rnn_params.sequence_length, rnn_params.input_size))
             if use_cuda:
@@ -94,10 +97,11 @@ def train(train_dataset, rnn_params, save_path=''):
             optimizer.step()
 
             if (i + 1) % 10 == 0:
-                print 'Epoch [%d/%d], Step [%d/%d], Loss: %.8f' % (
-                epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size, loss.data[0])
+                print 'Epoch [%d/%d], Step [%d/%d], Avg. Time: %.3d [s] , Loss: %.8f' % (
+                epoch + 1, rnn_params.num_epochs, i + 1, len(train_dataset) / rnn_params.batch_size,  np.mean(epoch_times),loss.data[0])
+        epoch_times.append(time.time-start_time)
 
-        if epoch % 100 == 0 and save_path:
+        if epoch % 1 == 0 and save_path:
             model_name = 'rnn_%04d.pkl'%(epoch)
             torch.save(rnn.state_dict(), join(save_path, model_name))
 
