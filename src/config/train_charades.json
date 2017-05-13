@@ -1,0 +1,18 @@
+{
+  "train_path":"./output/training_216.npz",
+  "test_path":"./output/testing_216.npz",
+  "models_dir":"./models",
+  "mode":"train",
+  "gpu":0,
+  "rnn":{
+    "seq_len":216,
+    "input":54,
+    "hidden":1024,
+    "layers":3,
+    "num_class":33,
+    "batch_sz":200,
+    "epochs":1000,
+    "lr":0.001,
+    "dropout":0.5
+  }
+}
