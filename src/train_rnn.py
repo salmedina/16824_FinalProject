@@ -12,7 +12,7 @@ from collections import namedtuple
 from os.path import join
 import numpy as np
 
-RNNParams = namedtuple('RNNParams', 'sequence_length, input_size, hidden_size, num_layers, num_classes, batch_size, num_epochs, learning_rate, dropout')
+RNNParams = namedtuple('RNNParams', 'name, sequence_length, input_size, hidden_size, num_layers, num_classes, batch_size, num_epochs, learning_rate, dropout')
 
 use_cuda = torch.cuda.is_available()
 gpu_id = 0
@@ -103,7 +103,7 @@ def train(train_dataset, rnn_params, save_path=''):
         epoch_times.append(time.time()-start_time)
 
         if epoch % 1 == 0 and save_path:
-            model_name = 'rnn_%04d.pkl'%(epoch)
+            model_name = '%s_%04d.pkl'%(rnn_params.name, epoch)
             torch.save(rnn.state_dict(), join(save_path, model_name))
 
     return rnn
@@ -116,6 +116,7 @@ def eval(rnn, test_dataset, rnn_params):
     total = 0
     if use_cuda:
         rnn = rnn.cuda(gpu_id)
+
     for images, labels in test_loader:
         images = Variable(images.view(-1, rnn_params.sequence_length, rnn_params.input_size))
         if use_cuda:
@@ -129,6 +130,9 @@ def eval(rnn, test_dataset, rnn_params):
 
         total += labels.size(0)
         correct += (predicted.view(-1) == labels.view(-1)).sum()
+
+        print 'Correct / Total: {} / {}'.format(correct, total)
+
     print 'Test Accuracy of the model on the %d test clips: %d%%' % (len(test_dataset),100 * correct / total)
 
 def test(state_dict_path, test_dataset, rnn_params):
@@ -161,7 +165,8 @@ if __name__ == '__main__':
                         batch_size = config['rnn']['batch_sz'],
                         num_epochs = config['rnn']['epochs'],
                         learning_rate = config['rnn']['lr'],
-                        dropout=config['rnn']['dropout'])
+                        dropout=config['rnn']['dropout'],
+                        name=config['rnn']['name'])
 
     if config['mode'] == 'train':
         print '>>> Loading the training data <<<'
