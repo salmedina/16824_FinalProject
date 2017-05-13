@@ -1,0 +1,8 @@
+{
+  "data_path":"/mnt/75af96b4-fc74-49ec-abe7-e6122c77bd85/Datasets/Charades/pose_g/",
+  "data_save_path":"/mnt/75af96b4-fc74-49ec-abe7-e6122c77bd85/Datasets/Charades/pose_g/training_bis.npz",
+  "sel_classes_path":"./charades_labels.txt",
+  "mode":"selected",
+  "batch_list_path":"./Action_Clips_Frames.csv",
+  "tensor_size":1024
+}
