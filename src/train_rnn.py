@@ -170,6 +170,7 @@ if __name__ == '__main__':
         eval(rnn_model, test_dataset, params)
 
     elif config['mode'] == 'test':
+        use_cuda = False
         test_dataset = load_ucf_dataset(config['test_path'])
 
         print '>>> Testing the model <<<'
