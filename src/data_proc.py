@@ -237,8 +237,8 @@ def extract_data_charades(data_path, annotation_list, num_frames, actions_dict):
                 missing_pose_count += 1
                 video_poses = np.concatenate((video_poses, [last_pose]))
 
-        if missing_pose_count > 0:
-            print '[{}] {} {} Missing pose frames: {}/{}'.format(processing_pos, video_id, clip_label, missing_pose_count, len(video_poses))
+
+        print '[{}] {} {} Missing pose frames: {}/{}'.format(processing_pos, video_id, clip_label, missing_pose_count, len(video_poses))
 
         if len(video_poses) < REQ_FRAMES:
             # Loop through the video until we get the required length
