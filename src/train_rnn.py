@@ -166,9 +166,9 @@ def eval(rnn, data_path, rnn_params):
         total += labels.size(0)
         correct += (predicted.view(-1) == labels.view(-1)).sum()
 
-        print 'Correct / Total: {} / {}'.format(correct, total)
-
-    print 'Test Accuracy of the model on the %d test clips: %d%%' % (len(test_dataset),100 * correct / total)
+    acc = correct / total
+    print 'Test Accuracy of the model on the %d test clips: %0.4f%%' % (len(test_dataset),100 * acc)
+    return acc
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -201,13 +201,20 @@ if __name__ == '__main__':
     if config['mode'] == 'train':
         print '>>> Training the model <<<'
         rnn_model = train(config['train_path'],  params, config['models_dir'])
-
         print '>>> Evaluating the model <<<'
         eval(rnn_model, config['test_path'], params)
+
     # TESTING MODE
     elif config['mode'] == 'test':
         print '>>> Loading the model <<<'
         rnn_model = load_model(config['model'], params)
-
         print '>>> Testing the model <<<'
         eval(rnn_model, config['test_path'], params)
+    # BATCH TEST
+    elif config['mode'] == 'batch_test':
+        max_epoch = int(config['max_epoch'])
+        for epoch in range(max_epoch):
+            model_path = config['model']%(epoch)
+            print 'Loading model {}'.format(model_path)
+            rnn_model = load_model(model_path, params)
+            eval(rnn_model, config['test_path'], params)
