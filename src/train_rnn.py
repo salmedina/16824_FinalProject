@@ -177,7 +177,7 @@ def eval(rnn, data_path, rnn_params):
 def batch_eval(model_path_tpl, min_epoch, max_epoch, data_path, rnn_params, eval_step=1):
     print '>>> Loading the testing data <<<'
     test_dataset = load_ucf_dataset(data_path)
-    for epoch in range(1, max_epoch+1, eval_step):
+    for epoch in range(min_epoch, max_epoch+1, eval_step):
         model_path = model_path_tpl % (epoch)
         rnn_model = load_model(model_path, rnn_params)
         print 'Testing model {}'.format(model_path)
