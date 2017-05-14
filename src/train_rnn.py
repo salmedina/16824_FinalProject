@@ -213,7 +213,7 @@ if __name__ == '__main__':
     # BATCH TEST
     elif config['mode'] == 'batch_test':
         max_epoch = int(config['max_epoch'])
-        for epoch in range(max_epoch):
+        for epoch in range(1,max_epoch):
             model_path = config['model']%(epoch)
             print 'Loading model {}'.format(model_path)
             rnn_model = load_model(model_path, params)
