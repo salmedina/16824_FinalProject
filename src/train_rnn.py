@@ -141,9 +141,7 @@ def train(data_path, rnn_params, save_path=''):
 
     return rnn
 
-def eval(rnn, data_path, rnn_params):
-    print '>>> Loading the testing data <<<'
-    test_dataset = load_ucf_dataset(data_path)
+def test(rnn, test_dataset, rnn_params):
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                               batch_size=rnn_params.batch_size,
                                               shuffle=False)
@@ -167,8 +165,24 @@ def eval(rnn, data_path, rnn_params):
         correct += (predicted.view(-1) == labels.view(-1)).sum()
 
     acc = correct / total
-    print 'Test Accuracy of the model on the %d test clips: %0.4f%%' % (len(test_dataset),100 * acc)
     return acc
+
+def eval(rnn, data_path, rnn_params):
+    print '>>> Loading the testing data <<<'
+    test_dataset = load_ucf_dataset(data_path)
+    acc = test(rnn, test_dataset, rnn_params)
+    print 'Test Accuracy of the model on the %d test clips: %0.4f' % (len(test_dataset), acc)
+    return acc
+
+def batch_eval(model_path_tpl, max_epoch, data_path, rnn_params):
+    print '>>> Loading the testing data <<<'
+    test_dataset = load_ucf_dataset(data_path)
+    for epoch in range(1, max_epoch+1):
+        model_path = model_path_tpl % (epoch)
+        print 'Loading model {}'.format(model_path)
+        rnn_model = load_model(model_path, rnn_params)
+        acc = test(rnn_model, test_dataset, rnn_params)
+        print 'Epoch: %d, Acc: %0.4f' % (epoch, acc)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -213,8 +227,4 @@ if __name__ == '__main__':
     # BATCH TEST
     elif config['mode'] == 'batch_test':
         max_epoch = int(config['max_epoch'])
-        for epoch in range(1,max_epoch):
-            model_path = config['model']%(epoch)
-            print 'Loading model {}'.format(model_path)
-            rnn_model = load_model(model_path, params)
-            eval(rnn_model, config['test_path'], params)
+        batch_eval(config['model'], max_epoch, config['test_path'], params)
