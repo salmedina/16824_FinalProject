@@ -5,6 +5,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.utils.data as data
+import torch.utils.data.sampler as sampler
 import torchvision.datasets as dsets
 import torchvision.transforms as transforms
 from torch.autograd import Variable
@@ -12,10 +13,14 @@ from collections import namedtuple
 from os.path import join
 import numpy as np
 
+# GLOBALS
 RNNParams = namedtuple('RNNParams', 'name, sequence_length, input_size, hidden_size, num_layers, num_classes, batch_size, num_epochs, learning_rate, dropout')
-
 use_cuda = torch.cuda.is_available()
 gpu_id = 0
+
+def set_gpu_id(id):
+    global gpu_id
+    gpu_id = id
 
 class RNN(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, num_classes, dropout=0):
@@ -39,6 +44,11 @@ class RNN(nn.Module):
 
         return out
 
+def load_model(state_dict_path, rnn_params):
+    rnn = RNN(rnn_params.input_size, rnn_params.hidden_size, rnn_params.num_layers, rnn_params.num_classes)
+    rnn.load_state_dict(torch.load(state_dict_path))
+    return rnn
+
 def build_mnist_dataset():
     train_dataset = dsets.MNIST(root='../data/',
                                 train=True,
@@ -51,6 +61,25 @@ def build_mnist_dataset():
 
     return train_dataset, test_dataset
 
+def calc_label_weights(labels):
+    # Easier to use count method
+    labels_list = list(labels)
+    counts = [labels_list.count(x) for x in range(max(labels_list)+1)]
+    # Calculate the ratio wrt to largest value
+    max_count = max(counts)
+    ratio = [max_count/c for c in counts]
+    # Calculate the weights by normalizing the ratios
+    sum_ratio = sum(ratio)
+    label_weights = [r/sum_ratio for r in ratio]
+    weights = [label_weights[l] for l in labels_list]
+    return weights
+
+def build_weighted_sampler(data_path):
+    labels = np.load(data_path)['labels']
+    weights = calc_label_weights(labels)
+    assert len(weights) == len(labels)
+
+    return sampler.WeightedRandomSampler(weights, len(labels), replacement=True)
 
 def load_ucf_dataset(data_path):
     data = np.load(data_path)['data']
@@ -66,10 +95,14 @@ def load_ucf_dataset(data_path):
 
     return ucf_dataset
 
-def train(train_dataset, rnn_params, save_path=''):
+def train(data_path, rnn_params, save_path=''):
+    print '>>> Loading the training data <<<'
+    train_dataset = load_ucf_dataset(data_path)
+    weighted_sampler = build_weighted_sampler(data_path)
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=rnn_params.batch_size,
-                                               shuffle=True)
+                                               shuffle=True,
+                                               sampler=weighted_sampler)
 
     rnn = RNN(rnn_params.input_size, rnn_params.hidden_size, rnn_params.num_layers, rnn_params.num_classes, rnn_params.dropout)
     criterion = nn.CrossEntropyLoss()
@@ -108,7 +141,9 @@ def train(train_dataset, rnn_params, save_path=''):
 
     return rnn
 
-def eval(rnn, test_dataset, rnn_params):
+def eval(rnn, data_path, rnn_params):
+    print '>>> Loading the testing data <<<'
+    test_dataset = load_ucf_dataset(data_path)
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                               batch_size=rnn_params.batch_size,
                                               shuffle=False)
@@ -135,28 +170,22 @@ def eval(rnn, test_dataset, rnn_params):
 
     print 'Test Accuracy of the model on the %d test clips: %d%%' % (len(test_dataset),100 * correct / total)
 
-def test(state_dict_path, test_dataset, rnn_params):
-    rnn = RNN(rnn_params.input_size, rnn_params.hidden_size, rnn_params.num_layers, rnn_params.num_classes)
-    rnn.load_state_dict(torch.load(state_dict_path))
-    eval(rnn, test_dataset, rnn_params)
-
-def set_gpu_id(id):
-    global gpu_id
-    gpu_id = id
-
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print 'Usage: train_rnn.py <config_path>'
         sys.exit(-1)
     config = json.load(open(sys.argv[1]))
 
+    # Configure according to GPU settings
+    # if gpu is not mentioned in the config file, fall back to CPU
     if 'gpu' not in config:
         use_cuda = False
-
+    # Otherwise, if there is hardware available, use the one specified by the user
     if use_cuda:
         set_gpu_id(config['gpu'])
         print 'Using GPU: {}'.format(gpu_id)
 
+    # Contain the RNN params in one structure
     params = RNNParams(sequence_length = config['rnn']['seq_len'],
                         input_size = config['rnn']['input'],
                         hidden_size = config['rnn']['hidden'],
@@ -168,19 +197,17 @@ if __name__ == '__main__':
                         dropout=config['rnn']['dropout'],
                         name=config['rnn']['name'])
 
+    # TRAINING MODE
     if config['mode'] == 'train':
-        print '>>> Loading the training data <<<'
-        train_dataset = load_ucf_dataset(config['train_path'])
         print '>>> Training the model <<<'
-        rnn_model = train(train_dataset,  params, config['models_dir'])
+        rnn_model = train(config['train_path'],  params, config['models_dir'])
 
-        print '>>> Loading the testing data <<<'
-        test_dataset = load_ucf_dataset(config['test_path'])
         print '>>> Evaluating the model <<<'
-        eval(rnn_model, test_dataset, params)
-
+        eval(rnn_model, config['test_path'], params)
+    # TESTING MODE
     elif config['mode'] == 'test':
-        test_dataset = load_ucf_dataset(config['test_path'])
+        print '>>> Loading the model <<<'
+        rnn_model = load_model(config['model'], params)
 
         print '>>> Testing the model <<<'
-        test(config['model'], test_dataset, params)
+        eval(rnn_model, config['test_path'], params)
