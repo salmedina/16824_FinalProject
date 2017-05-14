@@ -174,7 +174,7 @@ def eval(rnn, data_path, rnn_params):
     print 'Test Accuracy of the model on the %d test clips: %0.4f' % (len(test_dataset), acc)
     return acc
 
-def batch_eval(model_path_tpl, max_epoch, data_path, rnn_params, eval_step=1):
+def batch_eval(model_path_tpl, min_epoch, max_epoch, data_path, rnn_params, eval_step=1):
     print '>>> Loading the testing data <<<'
     test_dataset = load_ucf_dataset(data_path)
     for epoch in range(1, max_epoch+1, eval_step):
@@ -226,6 +226,9 @@ if __name__ == '__main__':
         eval(rnn_model, config['test_path'], params)
     # BATCH TEST
     elif config['mode'] == 'batch_test':
+        min_epoch = 1
+        if 'min_epoch' in config:
+            min_epoch = int(config['min_epoch'])
         max_epoch = int(config['max_epoch'])
         batch_step = int(config['batch_step'])
-        batch_eval(config['model'], max_epoch, config['test_path'], params, batch_step)
+        batch_eval(config['model'], min_epoch, max_epoch, config['test_path'], params, batch_step)
